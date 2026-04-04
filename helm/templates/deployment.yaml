@@ -13,10 +13,12 @@ spec:
       labels:
         app: techseminar2-api
     spec:
+      imagePullSecrets:
+      - name: ghcr-secret
       containers:
       - name: techseminar2-api
         image: {{ .Values.app.image }}
-        imagePullPolicy: Never
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: {{ .Values.app.port }}
         env:
