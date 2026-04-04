@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: techseminar2-api
+  namespace: channel
+spec:
+  replicas: {{ .Values.app.replicas }}
+  selector:
+    matchLabels:
+      app: techseminar2-api
+  template:
+    metadata:
+      labels:
+        app: techseminar2-api
+    spec:
+      containers:
+      - name: techseminar2-api
+        image: {{ .Values.app.image }}
+        imagePullPolicy: Never
+        ports:
+        - containerPort: {{ .Values.app.port }}
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "prod"
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:mysql://{{ .Values.mysql.host }}:{{ .Values.mysql.port }}/{{ .Values.mysql.database }}?useSSL=false&allowPublicKeyRetrieval=true"
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: techseminar2-secret
+              key: MYSQL_USERNAME
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: techseminar2-secret
+              key: MYSQL_PASSWORD
+        - name: PGVECTOR_DATASOURCE_URL
+          value: "jdbc:postgresql://{{ .Values.pgvector.host }}:{{ .Values.pgvector.port }}/{{ .Values.pgvector.database }}"
+        - name: PGVECTOR_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: techseminar2-secret
+              key: PGVECTOR_USERNAME
+        - name: PGVECTOR_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: techseminar2-secret
+              key: PGVECTOR_PASSWORD
+        - name: REDIS_HOST
+          value: {{ .Values.redis.host }}
+        - name: OLLAMA_HOST
+          value: {{ .Values.ollama.host }}
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 45
+          periodSeconds: 10
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 95
+          periodSeconds: 15
+          failureThreshold: 3
+        volumeMounts:
+        - name: prompt-config
+          mountPath: /app/config
+          readOnly: true
+      volumes:
+      - name: prompt-config
+        configMap:
+          name: prompt-config

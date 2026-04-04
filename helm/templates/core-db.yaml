@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: core-db
+  namespace: core
+spec:
+  serviceName: core-db-svc
+  replicas: 1
+  selector:
+    matchLabels:
+      app: core-db
+  template:
+    metadata:
+      labels:
+        app: core-db
+    spec:
+      containers:
+      - name: core-db
+        image: postgres:16
+        env:
+        - name: POSTGRES_DB
+          value: core_db
+        - name: POSTGRES_USER
+          value: core
+        - name: POSTGRES_PASSWORD
+          value: core
+        ports:
+        - containerPort: 5432
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: core-db-svc
+  namespace: core
+spec:
+  selector:
+    app: core-db
+  ports:
+  - port: 5432
+    targetPort: 5432
+  type: ClusterIP

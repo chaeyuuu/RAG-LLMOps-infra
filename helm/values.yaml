@@ -1,0 +1,22 @@
+app:
+  image: techseminar2:latest
+  replicas: 2
+  port: 8080
+
+mysql:
+  host: mysql-svc.core.svc.cluster.local
+  port: 3306
+  database: techseminar2_db
+
+redis:
+  host: redis-svc.channel.svc.cluster.local
+  port: 6379
+
+pgvector:
+  host: pgvector-svc.info.svc.cluster.local
+  port: 5432
+  database: techseminar2_db
+
+ollama:
+  host: host.minikube.internal
+  port: 11434
