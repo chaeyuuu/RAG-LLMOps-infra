@@ -3,10 +3,13 @@ kind: Service
 metadata:
   name: techseminar2-svc
   namespace: channel
+  labels:
+    app: techseminar2-api
 spec:
   selector:
     app: techseminar2-api
   ports:
-  - port: 8080
+  - name: http
+    port: 8080
     targetPort: 8080
   type: ClusterIP
