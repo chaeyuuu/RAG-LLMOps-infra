@@ -1,5 +1,5 @@
 app:
-  image: ghcr.io/chaeyuuu/techseminar2:latest
+  image: ghcr.io/chaeyuuu/techseminar2:6da5b29765fcc659a11ec2fdec2b2a324e89d9f6
   replicas: 2
   port: 8080
 
