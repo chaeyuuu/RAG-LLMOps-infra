@@ -14,70 +14,85 @@ spec:
         app: techseminar2-api
     spec:
       imagePullSecrets:
-      - name: ghcr-secret
+        - name: ghcr-secret
       containers:
-      - name: techseminar2-api
-        image: {{ .Values.app.image }}
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: {{ .Values.app.port }}
-        env:
-        - name: SPRING_PROFILES_ACTIVE
-          value: "prod"
-        - name: SPRING_DATASOURCE_URL
-          value: "jdbc:mysql://{{ .Values.mysql.host }}:{{ .Values.mysql.port }}/{{ .Values.mysql.database }}?useSSL=false&allowPublicKeyRetrieval=true"
-        - name: SPRING_DATASOURCE_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: techseminar2-secret
-              key: MYSQL_USERNAME
-        - name: SPRING_DATASOURCE_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: techseminar2-secret
-              key: MYSQL_PASSWORD
-        - name: PGVECTOR_DATASOURCE_URL
-          value: "jdbc:postgresql://{{ .Values.pgvector.host }}:{{ .Values.pgvector.port }}/{{ .Values.pgvector.database }}"
-        - name: PGVECTOR_DATASOURCE_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: techseminar2-secret
-              key: PGVECTOR_USERNAME
-        - name: PGVECTOR_DATASOURCE_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: techseminar2-secret
-              key: PGVECTOR_PASSWORD
-        - name: REDIS_HOST
-          value: {{ .Values.redis.host }}
-        - name: OLLAMA_HOST
-          value: {{ .Values.ollama.host }}
-        resources:
-          requests:
-            cpu: "250m"
-            memory: "512Mi"
-          limits:
-            cpu: "500m"
-            memory: "1Gi"
-        readinessProbe:
-          httpGet:
-            path: /actuator/health
-            port: 8080
-          initialDelaySeconds: 45
-          periodSeconds: 10
-          failureThreshold: 3
-        livenessProbe:
-          httpGet:
-            path: /actuator/health
-            port: 8080
-          initialDelaySeconds: 95
-          periodSeconds: 15
-          failureThreshold: 3
-        volumeMounts:
-        - name: prompt-config
-          mountPath: /app/config
-          readOnly: true
+        - name: techseminar2-api
+          image: {{ .Values.app.image }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{ .Values.app.port }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+
+            # 1. MySQL 설정 (DataSourceConfig용)
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://{{ .Values.mysql.host }}:{{ .Values.mysql.port }}/{{ .Values.mysql.database }}?useSSL=false&allowPublicKeyRetrieval=true"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: techseminar2-secret
+                  key: MYSQL_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: techseminar2-secret
+                  key: MYSQL_PASSWORD
+
+            # 2. PostgreSQL 설정
+            - name: CORE_DATASOURCE_URL
+              value: "jdbc:postgresql://{{ .Values.pgvector.host }}:{{ .Values.pgvector.port }}/{{ .Values.pgvector.database }}"
+            - name: CORE_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: techseminar2-secret
+                  key: PGVECTOR_USERNAME
+            - name: CORE_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: techseminar2-secret
+                  key: PGVECTOR_PASSWORD
+
+            # 3. PGVector 전용 설정
+            - name: PGVECTOR_DATASOURCE_URL
+              value: "jdbc:postgresql://{{ .Values.pgvector.host }}:{{ .Values.pgvector.port }}/{{ .Values.pgvector.database }}"
+
+            # 4. 기타 인프라 설정
+            - name: REDIS_HOST
+              value: {{ .Values.redis.host }}
+            - name: OLLAMA_HOST
+              value: {{ .Values.ollama.host }}
+
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 45
+            periodSeconds: 10
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 95
+            periodSeconds: 15
+            failureThreshold: 3
+
+          volumeMounts:
+            - name: prompt-config
+              mountPath: /app/config
+              readOnly: true
+
       volumes:
-      - name: prompt-config
-        configMap:
-          name: prompt-config
+        - name: prompt-config
+          configMap:
+            name: prompt-config
