@@ -25,49 +25,45 @@ spec:
             - name: SPRING_PROFILES_ACTIVE
               value: "prod"
 
-            # --- 1. MySQL (DataSourceConfig용) ---
-            - name: spring.datasource.url
+            - name: SPRING_DATASOURCE_URL
               value: "jdbc:mysql://{{ .Values.mysql.host }}:{{ .Values.mysql.port }}/{{ .Values.mysql.database }}?useSSL=false&allowPublicKeyRetrieval=true"
-            - name: spring.datasource.username
+            - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: techseminar2-secret
                   key: MYSQL_USERNAME
-            - name: spring.datasource.password
+            - name: SPRING_DATASOURCE_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: techseminar2-secret
                   key: MYSQL_PASSWORD
 
-            # --- 2. PostgreSQL (CoreDataSourceConfig용) ---
-            - name: core.datasource.url
+            - name: CORE_DATASOURCE_URL
               value: "jdbc:postgresql://{{ .Values.pgvector.host }}:{{ .Values.pgvector.port }}/{{ .Values.pgvector.database }}"
-            - name: core.datasource.username
+            - name: CORE_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: techseminar2-secret
                   key: PGVECTOR_USERNAME
-            - name: core.datasource.password
+            - name: CORE_DATASOURCE_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: techseminar2-secret
                   key: PGVECTOR_PASSWORD
 
-            # --- 3. PGVector (PgVectorConfig용 - ★현재 에러 지점) ---
-            - name: pgvector.datasource.url
+            - name: PGVECTOR_DATASOURCE_URL
               value: "jdbc:postgresql://{{ .Values.pgvector.host }}:{{ .Values.pgvector.port }}/{{ .Values.pgvector.database }}"
-            - name: pgvector.datasource.username
+            - name: PGVECTOR_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: techseminar2-secret
                   key: PGVECTOR_USERNAME
-            - name: pgvector.datasource.password
+            - name: PGVECTOR_DATASOURCE_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: techseminar2-secret
                   key: PGVECTOR_PASSWORD
 
-            # --- 4. 기타 인프라 ---
             - name: REDIS_HOST
               value: {{ .Values.redis.host }}
             - name: OLLAMA_HOST
@@ -85,14 +81,14 @@ spec:
             httpGet:
               path: /actuator/health
               port: 8080
-            initialDelaySeconds: 60  # 좀 더 여유 있게 잡았습니다
+            initialDelaySeconds: 70
             periodSeconds: 10
 
           livenessProbe:
             httpGet:
               path: /actuator/health
               port: 8080
-            initialDelaySeconds: 100
+            initialDelaySeconds: 120
             periodSeconds: 15
 
           volumeMounts:
